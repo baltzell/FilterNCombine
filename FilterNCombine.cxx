@@ -129,6 +129,14 @@ void printUsage();
 void assignOptions();
 void printOptions();
 
+void setMinimalBranches(TChain *c) {
+  c->SetBranchStatus("*", kFalse);
+  c->SetBranchStatus("evnt",kTrue);
+  c->SetBranchStatus("pid",kTrue);
+  c->SetBranchStatus("mc_pid",kTrue);
+}
+
+
 int main(int argc, char **argv) {
 
   // measure time
@@ -188,6 +196,8 @@ int main(int argc, char **argv) {
 
   Int_t Ne = (Int_t) t->GetEntries(); // 500 for testing
   Int_t currentEvent, previousEvent;
+
+  setMinimalBranches(t);
 
   // loop in entries
   for (Int_t i = 0; i <= Ne; i++) {
@@ -273,7 +283,11 @@ int main(int argc, char **argv) {
     if (nCombThisEvent || nMCCombThisEvent) {
       // loops around particles of the current event
       for (Int_t j = i; j < (i+nMCParticles); j++) { // assumming that nMCParticles > nParticles, always
+ 
+        // read all branches now:
+        t->SetBranchStatus("*", kTrue);
         t->GetEntry(j);
+        setMinimalBranches(t);
         AssignOriginalVariables(j, nCombThisEvent); // AOV(Int_t entry, Int_t nCombInSimrec)	
         tOriginal->Fill();
       } // end of particles loop
@@ -493,6 +507,10 @@ int main(int argc, char **argv) {
        std::cout << "  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
        */
 
+    
+    // read all branches now:
+    t->SetBranchStatus("*", kTrue);
+    
     // extract
     for (Int_t cc = 0; cc < nMCCombThisEvent; cc++) { // loop on combinations
       for (Int_t pp = 0; pp < 4; pp++) { // loop on particles
